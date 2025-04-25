@@ -35,6 +35,16 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+
+from flask import send_file
+
+@app.route('/download/installer')
+def download_installer():
+    installer_path = os.path.join('templates', 'installer.exe')
+    if os.path.exists(installer_path):
+        return send_file(installer_path, as_attachment=True)
+    return "Arquivo installer.exe não encontrado", 404
+
 @app.route('/')
 def index():
     db = get_db()
@@ -91,7 +101,7 @@ def api_lib(name):
     if result:
         return jsonify({'code': result[0]})
     return jsonify({'error': 'Biblioteca não encontrada'}), 404
-from flask import send_file
+
 # 🆕 Rota para baixar o instalador completo do Snask (.zip)
 @app.route('/download/font')
 def download_font():
