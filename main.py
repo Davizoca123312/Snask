@@ -8,11 +8,9 @@ DATABASE = 'libs.db'
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        exists = os.path.exists(DATABASE)
         db = g._database = sqlite3.connect(DATABASE)
-        if not exists:
-            with app.app_context():
-                init_db()
+        with app.app_context():
+            init_db()  # <- sempre tenta garantir a tabela
     return db
 
 def init_db():
