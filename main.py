@@ -3,7 +3,7 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-DATABASE = 'libs.db'
+DATABASE = 'templates/libs.db'
 
 def get_db():
     db = getattr(g, '_database', None)
