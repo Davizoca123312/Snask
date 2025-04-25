@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>SnaskGet - Bibliotecas Snask</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #111;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #6cf;
+            text-align: center;
+        }
+
+        #search {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            width: 300px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+
+        .library {
+            background-color: #222;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .library h2 {
+            margin-top: 0;
+            color: #6cf;
+        }
+
+        .library a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #6cf;
+            border: none;
+            border-radius: 5px;
+            color: #000;
+            text-decoration: none;
+        }
+
+        .library a:hover {
+            background-color: #5ae;
+        }
+
+        #no-libs {
+            text-align: center;
+            color: #888;
+            margin-top: 40px;
+            font-style: italic;
+        }
+
+        .top-bar {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .top-bar a {
+            color: #6cf;
+            text-decoration: none;
+            font-size: 16px;
+            border: 1px solid #6cf;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .top-bar a:hover {
+            background-color: #6cf;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>📦 SnaskGet - Bibliotecas Snask</h1>
+
+    <div class="top-bar">
+        <a href="/add">➕ Adicionar Biblioteca</a>
+    </div>
+
+    <input type="text" id="search" placeholder="Buscar biblioteca..." onkeyup="filtrar()">
+
+    <div id="lib-container">
+        {% if libraries %}
+            {% for lib in libraries %}
+                <div class="library">
+                    <h2>{{ lib[1] }}</h2>
+                    <p>{{ lib[2] }}</p>
+                    <a href="{{ url_for('view', lib_id=lib[0]) }}">🔍 Ver Detalhes</a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p id="no-libs">Nenhuma biblioteca disponível.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function filtrar() {
+            const input = document.getElementById("search").value.toLowerCase();
+            const container = document.getElementById("lib-container");
+            const libs = container.querySelectorAll(".library");
+            let encontrados = 0;
+
+            libs.forEach(lib => {
+                const nome = lib.querySelector("h2").innerText.toLowerCase();
+                const match = nome.includes(input);
+                lib.style.display = match ? "block" : "none";
+                if (match) encontrados++;
+            });
+
+            document.getElementById("no-libs").style.display = encontrados === 0 ? "block" : "none";
+        }
+    </script>
+</body>
+</html>

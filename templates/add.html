@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Adicionar Biblioteca - SnaskGet</title>
+    <style>
+        body { font-family: sans-serif; background: #1e1e1e; color: white; padding: 30px; }
+        input, textarea { width: 100%; padding: 8px; margin-bottom: 12px; background: #2c2c2c; color: white; border: none; }
+        input[type="submit"] { background: #4caf50; color: white; cursor: pointer; }
+        h1 { color: #00ffff; }
+        a { color: #00ffff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Adicionar Biblioteca</h1>
+    <form method="post">
+        <label>Nome da Biblioteca (.snask):</label>
+        <input type="text" name="name" required>
+
+        <label>Autor:</label>
+        <input type="text" name="author" required>
+
+        <label>Descrição:</label>
+        <textarea name="description" rows="4" required></textarea>
+
+        <label>Código-fonte (.snask):</label>
+        <textarea name="code" rows="10" required></textarea>
+
+        <input type="submit" value="Adicionar">
+    </form>
+    <p><a href="/">← Voltar para o início</a></p>
+</body>
+</html>
