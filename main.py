@@ -92,16 +92,15 @@ def api_lib(name):
         return jsonify({'code': result[0]})
     return jsonify({'error': 'Biblioteca não encontrada'}), 404
 from flask import send_file
-
-# 🆕 Rota para baixar o instalador completo do Snask (.rar)
+# 🆕 Rota para baixar o instalador completo do Snask (.zip)
 @app.route('/download/font')
 def download_font():
-    rar_path = "C:/Users/User/Desktop/Snask/chat/Site/snask.zip"  # arquivo deve estar na raiz do projeto
-    if os.path.exists(rar_path):
-        return send_file(rar_path, as_attachment=True)
+    zip_path = os.path.join(app.root_path, "templates", "snask.zip")  # Caminho absoluto correto
+    if os.path.exists(zip_path):
+        return send_file(zip_path, as_attachment=True)
     
-    return "Arquivo snask.rar não encontrado", 404
-    
+    return "Arquivo snask.zip não encontrado", 404
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 5000))
