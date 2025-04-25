@@ -9,12 +9,10 @@ def get_db():
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
-        with app.app_context():
-            init_db()  # <- sempre tenta garantir a tabela
+        init_db(db)  # <- PASSANDO o db aqui
     return db
 
-def init_db():
-    db = get_db()
+def init_db(db):  # <- recebe o db como argumento
     cursor = db.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS libraries (
