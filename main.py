@@ -1,25 +1,54 @@
-from flask import Flask, render_template, request, redirect, url_for, Response, jsonify
+from flask import Flask, render_template, g, request, redirect, url_for, Response, jsonify
+import sqlite3
 import os
-import json
 
 app = Flask(__name__)
-LIBS_FILE = 'libs.json'
+DATABASE = 'libs.db'
 
-# Função para carregar o conteúdo de libs.json
-def load_libs():
-    if os.path.exists(LIBS_FILE):
-        with open(LIBS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return []
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+        with app.app_context():
+            init_db()  # <- sempre tenta garantir a tabela
+    return db
 
-# Função para salvar as bibliotecas no libs.json
-def save_libs(libs):
-    with open(LIBS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(libs, f, indent=4)
+def init_db():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS libraries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            author TEXT NOT NULL,
+            description TEXT NOT NULL,
+            code TEXT NOT NULL
+        )
+    ''')
+    db.commit()
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+
+from flask import send_file
+
+@app.route('/download/installer')
+def download_installer():
+    installer_path = os.path.join('templates', 'installer.exe')
+    if os.path.exists(installer_path):
+        return send_file(installer_path, as_attachment=True)
+    return "Arquivo installer.exe não encontrado", 404
 
 @app.route('/')
 def index():
-    libs = load_libs()
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT id, name, description FROM libraries')
+    libs = cursor.fetchall()
     return render_template('index.html', libraries=libs)
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -30,44 +59,45 @@ def add():
         description = request.form['description']
         code = request.form['code']
         
-        libs = load_libs()
-        new_lib = {
-            'name': name,
-            'author': author,
-            'description': description,
-            'code': code
-        }
-        libs.append(new_lib)
-        save_libs(libs)
-        
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('INSERT INTO libraries (name, author, description, code) VALUES (?, ?, ?, ?)',
+                       (name, author, description, code))
+        db.commit()
         return redirect(url_for('index'))
     
     return render_template('add.html')
 
 @app.route('/lib/<int:lib_id>')
 def view(lib_id):
-    libs = load_libs()
-    if lib_id < len(libs):
-        lib = libs[lib_id]
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT name, author, description FROM libraries WHERE id=?', (lib_id,))
+    lib = cursor.fetchone()
+    if lib:
         return render_template('view.html', lib=lib, lib_id=lib_id)
     return "Biblioteca não encontrada", 404
 
 # 🆕 Rota de download da biblioteca
 @app.route('/download/<name>')
 def download(name):
-    libs = load_libs()
-    for lib in libs:
-        if lib['name'] == name:
-            return Response(lib['code'], mimetype='text/plain')
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT code FROM libraries WHERE name=?', (name,))
+    row = cursor.fetchone()
+    if row:
+        return Response(row[0], mimetype='text/plain')
     return "Biblioteca não encontrada", 404
 
 # 🆕 Rota para snaskget.py (formato JSON)
 @app.route('/api/lib/<string:name>')
 def api_lib(name):
-    libs = load_libs()
-    for lib in libs:
-        if lib['name'] == name:
-            return jsonify({'code': lib['code']})
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT code FROM libraries WHERE name=?', (name,))
+    result = cursor.fetchone()
+    if result:
+        return jsonify({'code': result[0]})
     return jsonify({'error': 'Biblioteca não encontrada'}), 404
 
 # 🆕 Rota para baixar o instalador completo do Snask (.zip)
