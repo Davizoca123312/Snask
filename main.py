@@ -9,4 +9,7 @@ def download_installer():
     if os.path.exists(installer_path):
         return send_file(installer_path, as_attachment=True)
     return "Arquivo installer.exe não encontrado", 404
+
+if __name__ == "__main__":
+    app.run()
    
